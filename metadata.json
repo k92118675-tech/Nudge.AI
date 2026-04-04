@@ -1,0 +1,5 @@
+{
+  "name": "Nudge.ai - Crack Your Interview",
+  "description": "A premium AI-powered interview preparation platform to turn weak answers into strong stories.",
+  "requestFramePermissions": ["microphone"]
+}
