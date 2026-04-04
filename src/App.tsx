@@ -21,7 +21,9 @@ import { PracticeView } from './views/PracticeView';
 import { GDArenaView } from './views/GDArenaView';
 import { ProgressView } from './views/ProgressView';
 import { SettingsView } from './views/SettingsView';
+import { ProView } from './views/ProView';
 import { Footer } from './components/Footer';
+import { Sparkles } from 'lucide-react';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('landing');
@@ -48,6 +50,7 @@ export default function App() {
     { id: 'dashboard', label: 'Home', icon: <Home size={20} /> },
     { id: 'practice', label: 'Practice', icon: <Mic size={20} /> },
     { id: 'progress', label: 'Progress', icon: <BarChart3 size={20} /> },
+    { id: 'pro', label: 'Pro', icon: <Sparkles size={20} className="text-primary" /> },
     { id: 'settings', label: 'Settings', icon: <SettingsIcon size={20} /> },
   ];
 
@@ -143,7 +146,8 @@ export default function App() {
             >
               {currentView === 'dashboard' && user && <DashboardView user={user} sessions={sessions} />}
               {currentView === 'practice' && user && <PracticeView user={user} setView={setCurrentView} refreshSessions={refreshSessions} />}
-              {currentView === 'progress' && <ProgressView sessions={sessions} />}
+              {currentView === 'progress' && user && <ProgressView user={user} sessions={sessions} />}
+              {currentView === 'pro' && user && <ProView user={user} setUser={setUser} />}
               {currentView === 'settings' && user && <SettingsView user={user} setUser={setUser} setView={setCurrentView} />}
             </motion.div>
           </AnimatePresence>

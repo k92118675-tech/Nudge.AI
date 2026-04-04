@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ViewType } from '../types';
 import { Footer } from '../components/Footer';
+import { Pricing } from '../components/Pricing';
 
 export const LandingView = ({ setView }: { setView: (v: ViewType) => void }) => {
   return (
@@ -161,6 +162,15 @@ export const LandingView = ({ setView }: { setView: (v: ViewType) => void }) => 
             <p className="text-gray-400">Structure your answers using the industry-standard framework.</p>
           </div>
         </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
+          <h2 className="text-4xl font-bold font-display mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">Choose the plan that fits your career goals.</p>
+        </div>
+        <Pricing onUpgrade={() => setView('onboarding')} />
       </section>
 
       <Footer />

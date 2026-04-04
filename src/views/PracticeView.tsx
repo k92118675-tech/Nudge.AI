@@ -165,6 +165,7 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
       category: selectedCategory || 'general',
       question: activeQuestion,
       userResponse: response,
+      audioBase64: audioData?.data,
       feedback: result,
       durationSeconds: recordingDuration,
       timestamp: new Date().toISOString()

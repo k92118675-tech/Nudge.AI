@@ -34,6 +34,7 @@ export type InterviewSession = {
   question: string;
   userResponse: string;
   audioUrl?: string;
+  audioBase64?: string;
   feedback: FeedbackResult;
   durationSeconds: number;
   timestamp: string; // ISO string
@@ -46,4 +47,4 @@ export type MetricSummary = {
   currentStreak: number;
 }
 
-export type ViewType = 'landing' | 'onboarding' | 'dashboard' | 'practice' | 'gd' | 'progress' | 'settings';
+export type ViewType = 'landing' | 'onboarding' | 'dashboard' | 'practice' | 'gd' | 'progress' | 'settings' | 'pro';
