@@ -83,6 +83,7 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
 
   const startRecording = async () => {
     setMicError(null);
+    setAudioChunks([]);
     
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setMicError("Your browser does not support audio recording. Please use a modern browser like Chrome or Firefox.");
@@ -464,6 +465,12 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
                     <h3 className="text-xl font-bold mb-4">AI Rewritten Answer</h3>
                     <div className="p-6 bg-white/5 rounded-2xl border border-white/10 font-mono text-sm text-primary">
                       {feedback.rewrittenAnswer}
+                    </div>
+                  </div>
+                  <div className="glass-card">
+                    <h3 className="text-xl font-bold mb-4">Your Transcription</h3>
+                    <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-sm text-gray-400">
+                      {feedback.transcription || "No transcription available."}
                     </div>
                   </div>
                 </div>

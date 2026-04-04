@@ -15,6 +15,7 @@ export type FeedbackResult = {
   toneAnalysis?: string;
   stutterScore?: number;
   genericFeedback?: string;
+  transcription?: string;
   starBreakdown: {
     situation: { present: boolean; excerpt: string; suggestion: string };
     task: { present: boolean; excerpt: string; suggestion: string };
