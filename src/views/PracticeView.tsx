@@ -327,7 +327,7 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
           >
             <h3 className="text-xl font-bold mb-2">Nudge AI is analyzing your response...</h3>
             <p className="text-gray-400 italic">
-              {["Identifying STAR components...", "Analyzing clarity and impact...", "Generating recruiter perspective..."][Math.floor(Date.now() / 1000) % 3]}
+              {["Identifying STAR components...", "Analyzing vocal tone and energy...", "Generating recruiter perspective...", "Transcribing your response..."][Math.floor(Date.now() / 1000) % 4]}
             </p>
           </motion.div>
         </div>
