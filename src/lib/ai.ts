@@ -114,16 +114,20 @@ export async function generateFeedback(
       }
     });
 
-    const result = JSON.parse(response.text || '{}');
+    if (!response.text) {
+      throw new Error("AI returned an empty response. Please try again.");
+    }
+
+    const result = JSON.parse(response.text);
     
     return {
       ...result,
       isMockData: false
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Analysis Error:", error);
-    // Fallback to mock if API fails
-    return getMockFeedback(userResponse);
+    const errorMessage = error?.message || "Unknown error occurred during AI analysis.";
+    throw new Error(`AI Analysis Failed: ${errorMessage}`);
   }
 }
 

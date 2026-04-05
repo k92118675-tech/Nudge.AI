@@ -70,6 +70,7 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [micError, setMicError] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: any;
@@ -96,8 +97,21 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
     }
 
     try {
+      console.log("Requesting microphone access...");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      console.log("Microphone access granted.");
+      let mimeType = 'audio/webm';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else if (MediaRecorder.isTypeSupported('audio/aac')) {
+        mimeType = 'audio/aac';
+      }
+
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -157,23 +171,30 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
       audioData = { data: base64, mimeType: 'audio/webm' };
     }
 
-    const result = await generateFeedback(response, activeQuestion, user.isPro, audioData);
-    setFeedback(result);
-    
-    const session: InterviewSession = {
-      id: Math.random().toString(36).substr(2, 9),
-      category: selectedCategory || 'general',
-      question: activeQuestion,
-      userResponse: response,
-      audioBase64: audioData?.data,
-      feedback: result,
-      durationSeconds: recordingDuration,
-      timestamp: new Date().toISOString()
-    };
-    
-    StorageService.saveSession(session);
-    refreshSessions();
-    setState('D');
+    try {
+      setAnalysisError(null);
+      const result = await generateFeedback(response, activeQuestion, user.isPro, audioData);
+      setFeedback(result);
+      
+      const session: InterviewSession = {
+        id: Math.random().toString(36).substr(2, 9),
+        category: selectedCategory || 'general',
+        question: activeQuestion,
+        userResponse: response,
+        audioBase64: audioData?.data,
+        feedback: result,
+        durationSeconds: recordingDuration,
+        timestamp: new Date().toISOString()
+      };
+      
+      StorageService.saveSession(session);
+      refreshSessions();
+      setState('D');
+    } catch (error: any) {
+      console.error("Analysis failed:", error);
+      setAnalysisError(error.message || "An unexpected error occurred during AI analysis.");
+      setState('B'); // Go back to practice view so they can try again
+    }
   };
 
   return (
@@ -241,6 +262,16 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
               </div>
               <h2 className="text-2xl font-bold mb-8">{activeQuestion}</h2>
               
+              {analysisError && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+                  <AlertTriangle size={18} />
+                  <div>
+                    <p className="font-bold">Analysis Failed</p>
+                    <p>{analysisError}</p>
+                  </div>
+                </div>
+              )}
+
               {user.preference === 'video' ? (
                 <div className="w-full h-64 bg-black/40 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group opacity-50">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
