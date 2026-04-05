@@ -75,7 +75,15 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
   useEffect(() => {
     let interval: any;
     if (isRecording) {
-      interval = setInterval(() => setRecordingDuration(d => d + 1), 1000);
+      interval = setInterval(() => {
+        setRecordingDuration(d => {
+          if (d >= 90) {
+            stopRecording();
+            return 90;
+          }
+          return d + 1;
+        });
+      }, 1000);
     } else {
       clearInterval(interval);
     }
@@ -251,12 +259,18 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
           <div className="lg:col-span-3 space-y-6">
             <div className="glass-card">
               <div className="flex justify-between items-center mb-6">
-                <div className={`text-2xl font-mono font-bold ${isRecording ? 'text-red-500 animate-pulse' : 'text-primary'}`}>
+                <div className={`text-2xl font-mono font-bold ${isRecording ? (recordingDuration >= 80 ? 'text-orange-500' : 'text-red-500 animate-pulse') : 'text-primary'}`}>
                   {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                  {isRecording && <span className="text-xs ml-2 text-gray-500">/ 1:30</span>}
                 </div>
                 {isRecording && recordingDuration < 20 && (
                   <div className="text-xs text-red-400 font-bold animate-bounce">
                     Min 20s required: {20 - recordingDuration}s left
+                  </div>
+                )}
+                {isRecording && recordingDuration >= 80 && (
+                  <div className="text-xs text-orange-400 font-bold animate-pulse">
+                    Approaching limit: {90 - recordingDuration}s left
                   </div>
                 )}
               </div>
@@ -326,7 +340,7 @@ export const PracticeView = ({ user, setView, refreshSessions }: { user: User, s
                 </div>
                 <button 
                   disabled={
-                    (user.preference === 'voice' && (isRecording || recordingDuration < 20)) ||
+                    (user.preference === 'voice' && (isRecording || recordingDuration < 20 || recordingDuration > 90)) ||
                     (user.preference === 'video')
                   }
                   onClick={handleSubmit}

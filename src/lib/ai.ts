@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import { FeedbackResult } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
@@ -18,23 +18,27 @@ export async function generateFeedback(
       The candidate is answering the following question: "${question}".
       
       CRITICAL INSTRUCTIONS:
-      1. AUDIO ANALYSIS: If audio is provided, you MUST perform a deep vocal analysis. Listen for:
+      1. DEPTH OF ANALYSIS: Whether the answer is short/nonsensical or long/professional, you MUST provide a deep, reasoned analysis. 
+         - For professional answers: Do not rush. Analyze the nuance of their STAR structure and the sophistication of their vocal delivery.
+         - For nonsensical answers: Explain WHY it is nonsensical from a recruiter's perspective and how it fails the STAR method.
+      
+      2. AUDIO ANALYSIS: If audio is provided, you MUST perform a deep vocal analysis. Listen for:
          - Pace: Is it too fast (anxious) or too slow (uncertain)?
          - Tone: Is it professional, enthusiastic, or monotone?
          - Confidence: Are there hesitations, rising intonation at the end of sentences (upspeaking), or vocal fry?
          - Fluency: Count filler words (um, ah, like, you know) and identify stutters or awkward pauses.
       
-      2. STAR METHOD VALIDATION: You MUST map the candidate's response (from audio transcription or text) to the STAR (Situation, Task, Action, Result) framework.
+      3. STAR METHOD VALIDATION: You MUST map the candidate's response (from audio transcription or text) to the STAR (Situation, Task, Action, Result) framework.
          - Be strict. If a component is missing or weak, mark 'present: false' and provide a specific 'suggestion'.
          - For 'excerpt', provide the EXACT words (or a very close paraphrase) from the candidate's response that represent that component.
       
-      3. PERSONALIZED FEEDBACK: Avoid generic advice. Your feedback MUST be directly tied to what the candidate actually said or how they sounded.
+      4. PERSONALIZED FEEDBACK: Avoid generic advice. Your feedback MUST be directly tied to what the candidate actually said or how they sounded.
          - If they sounded nervous, tell them exactly where they started rushing.
          - If their 'Result' was weak, tell them what specific metrics or outcomes they should have mentioned based on their 'Action'.
       
-      4. RECRUITER PERSPECTIVE: Write this as if you are a Senior Recruiter at a top-tier company (e.g., Google, McKinsey). Be honest, professional, and insightful.
+      5. RECRUITER PERSPECTIVE: Write this as if you are a Senior Recruiter at a top-tier company (e.g., Google, McKinsey). Be honest, professional, and insightful.
       
-      5. TRANSCRIPTION: Provide a verbatim transcription of the audio. This is the foundation of your analysis.
+      6. TRANSCRIPTION: Provide a verbatim transcription of the audio. This is the foundation of your analysis.
       
       JSON STRUCTURE REQUIREMENTS:
       - overallScore: 0-100 (Be realistic. 90+ is exceptional).
@@ -47,7 +51,7 @@ export async function generateFeedback(
           - suggestion: string (Actionable improvement)
       - recruiterPerspective: A professional, high-stakes assessment.
       - rewrittenAnswer: A "Gold Standard" version of their specific story.
-      - improvementTips: 3 highly specific tips (e.g., "At 0:45, you used 'um' three times while describing the technical challenge. Practice that transition.").
+      - improvementTips: 3 highly specific tips.
       - toneAnalysis: (Premium) Detailed breakdown of vocal performance.
       - stutterScore: (Premium) 0-100 (100 = perfectly fluent).
       - genericFeedback: (Free) Comprehensive summary.
@@ -78,11 +82,12 @@ export async function generateFeedback(
       throw new Error("No response content provided (neither text nor audio).");
     }
 
-    const response = await ai.models.generateContent({
+    const responsePromise = ai.models.generateContent({
       model,
       contents: { parts: contents },
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -113,6 +118,13 @@ export async function generateFeedback(
         }
       }
     });
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      // Reduced timeout to 60s as requested
+      setTimeout(() => reject(new Error("Analysis timed out. Please try a shorter response or check your connection.")), 60000);
+    });
+
+    const response = await Promise.race([responsePromise, timeoutPromise]);
 
     if (!response.text) {
       throw new Error("AI returned an empty response. Please try again.");
